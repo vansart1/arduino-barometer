@@ -22,8 +22,8 @@ Connecting Display:
   Connect GND to ground
 
 Connecting Buttons:
-  Dim Up Button to D2
-  Dim Down Button to D3
+  Dim Up Button to D2 and ground (each side of button)
+  Dim Down Button to D3 and ground (each side of button)
 
 NOTE: Uses LCD display from here: https://github.com/jimblom/Serial-LCD-Kit/wiki/Serial-Enabled-LCD-Kit-Datasheet  
 */
