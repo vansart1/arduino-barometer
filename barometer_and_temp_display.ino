@@ -20,22 +20,33 @@ Connecting Display:
   Connect RX to D11
   Connect Vin to 5 VDC
   Connect GND to ground
-  
+
+Connecting Buttons:
+  Dim Up Button to D2
+  Dim Down Button to D3
+
+NOTE: Uses LCD display from here: https://github.com/jimblom/Serial-LCD-Kit/wiki/Serial-Enabled-LCD-Kit-Datasheet  
 */
 
-//############## initialization ###########
+
+//############## INITIALIZATION ###########
 
 //calibration for pressure in sensor compared to known atmospheric pressure in area
 //  - this is obtained by comparing the raw pressure (ie when pressure_calibration=0)
 //    to a known pressure in the area from a weather station
-float pressure_calibration = -3.0;
+const float pressure_calibration = -3.0;
+
+
+const int up_pin=2;
+const int down_pin=3;
+
+volatile int dim_level=25;
 
 Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
 
 SoftwareSerial displaySerial(10, 11); // RX, TX
 
-
-//############## setup ###########
+//############## SETUP ###########
 void setup() 
 {
   //start serials
@@ -51,11 +62,19 @@ void setup()
     while(1);
   }
 
+  //set up interrupts
+  pinMode(up_pin, INPUT_PULLUP);    // initialize pin as an input w/ pullup
+  pinMode(down_pin, INPUT_PULLUP);    // initialize pin as an input w/ pullup
+  attachInterrupt(digitalPinToInterrupt(up_pin), up_ISR, FALLING); //set up interrupt
+  attachInterrupt(digitalPinToInterrupt(down_pin), down_ISR, FALLING); //set up interrupt
+
+
+  
   delay(1000); //wait a second for display to "boot"
 }
 
 
-//############## loop ###########
+//############## LOOP ###########
 void loop() 
 {
   //create and get latest sensor event
@@ -93,7 +112,11 @@ void loop()
 
     //convert temp to string and create line2
     dtostrf(tempF, 3, 2, buff);   //convert float to char array
-    sprintf(line2,"Temp:     %sF", buff); //create line
+    sprintf(line2,"Temp:    %s F", buff); //create line
+
+   // displaySerial.write(0x80);
+   // displaySerial.write(1);
+
 
     //send bytes to clear display
     displaySerial.write(254);
@@ -109,6 +132,33 @@ void loop()
     Serial.print("Error reading the sensor!");
     displaySerial.println("ERROR");
   }
+  Serial.println(dim_level);
   
-  delay( 10 * 1000 );
+  delay( 1 * 1000 );
 }
+
+
+//############## INTERRUPTS ###########
+
+void up_ISR() 
+{
+  dim_level+=2;
+  if ( dim_level > 50 )
+  {
+    dim_level=50;
+  }
+    displaySerial.write(0x80);
+    displaySerial.write(dim_level);
+}
+
+void down_ISR() 
+{
+  dim_level-=2;
+  if ( dim_level < 1 )
+  {
+    dim_level=1;
+  }
+    displaySerial.write(0x80);
+    displaySerial.write(dim_level);
+}
+
