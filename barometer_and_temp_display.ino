@@ -134,7 +134,7 @@ void loop()
   }
   Serial.println(dim_level);
   
-  delay( 1 * 1000 );
+  delay( 10 * 1000 );
 }
 
 
